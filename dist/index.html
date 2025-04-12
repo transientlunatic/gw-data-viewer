@@ -7,12 +7,23 @@
   <body>
     <script src="main.js" defer></script>
 
-    <input type="file" id="datafile">
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+      <div class="container-fluid">
+	<a class="navbar-brand" href="#">Online PE Viewer</a>
+</button>
+<form class="d-flex" role="upload">
+  <input type="file" id="datafile">
+</form>
+</div>
+</nav>
 
-    <input type="text" id="urlInput" placeholder="Enter HDF5 file URL" />
-    <button id="loadFromUrl">Load from URL</button>
-    
-    <div id="output" class="row"></div>
-    
-  </body>
+
+
+<!-- <input type="text" id="urlInput" placeholder="Enter HDF5 file URL" /> -->
+<!-- <button id="loadFromUrl">Load from URL</button> -->
+
+<div class="container">
+  <div id="output" class="row"></div>
+</div>
+</body>
 </html>

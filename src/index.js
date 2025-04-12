@@ -108,24 +108,33 @@ function hist(data, property, element){
 	.attr("d", line);
 }
 
-function display_parameter_list(file, dataset="beyond"){
+function display_parameter_list(file){
     // Display the list of parameters in the file.
-    const posteriors = file.get(dataset+"/posterior_samples");
+    var datasets = file.keys();
+    datasets.splice(datasets.indexOf("history"), 1)
+    datasets.splice(datasets.indexOf("version"), 1)
+ 
     const menu = d3.select("#output")
 	  .append("div")
-	  .attr("class", "col-md-6")
-	  .append("ul")
-	  .attr("class", "list-group");
-    menu.selectAll("li")
-    	.data(posteriors.metadata.compound_type.members)
-	.enter()
-	.append("li")
-	.attr("class", "list-group-item")
-	.attr("data-parameter", (member)=>member.name)
-	.text((member) => member.name)
-	.on("click", (event) => {
-	    display_samples(file, dataset, event.target.dataset.parameter);
-	});
+	  .attr("class", "col-md-4");
+
+    for (const dataset of datasets){
+	const posteriors = file.get(dataset+"/posterior_samples");
+	menu.append("h5")
+	    .text(dataset);
+	menu.append("ul")
+	    .attr("class", "list-group")
+	    .selectAll("li")
+    	    .data(posteriors.metadata.compound_type.members)
+	    .enter()
+	    .append("li")
+	    .attr("class", "list-group-item")
+	    .attr("data-parameter", (member)=>member.name)
+	    .text((member) => member.name)
+	    .on("click", (event) => {
+		display_samples(file, dataset, event.target.dataset.parameter);
+	    });
+    }
 }
 
 function display_samples(file, dataset="beyond", parameter="mass_1"){
@@ -156,8 +165,8 @@ file_input.addEventListener("change", async (event) => {
 	FS.writeFile(datafilename, new Uint8Array(buffer));
 	const h5file = new h5wasm.File(datafilename, "r");
 	console.log("File uploaded")
-	display_parameter_list(h5file, "bilby-roq-cosmo-2");
-	display_samples(h5file, "bilby-roq-cosmo-2");
+	display_parameter_list(h5file);
+	// display_samples(h5file, "bilby-roq-cosmo-2");
     } catch (err) {
 	console.log(err);
     }
