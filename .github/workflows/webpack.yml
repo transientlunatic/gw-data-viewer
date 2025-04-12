@@ -26,20 +26,21 @@ jobs:
       run: |
         npm install
         npx webpack
-deploy:
-  runs-on: ubuntu-latest
-  permissions:
-    contents: read
-    pages: write
-    id-token: write
-  environment:
-    name: github-pages
-    url: ${{ steps.deployment.outputs.url }}
-  steps:
-    - name: Deploy app to GitHub Pages
-      uses: lr0pb/deploy-pages@v1
-      id: deployment
-      with:
-        node-version: 18.x
-        build-comand: 'webpack'
-        output-dir: 'dist'
+        
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.url }}
+    steps:
+      - name: Deploy app to GitHub Pages
+        uses: lr0pb/deploy-pages@v1
+        id: deployment
+        with:
+          node-version: 18.x
+          build-comand: 'webpack'
+          output-dir: 'dist'
