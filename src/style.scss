@@ -1,2 +1,11 @@
 // @import "custom";		// 
 @import "~bootstrap/scss/bootstrap";
+
+
+.d3gw-sidebar {
+
+    background: #333333;
+    color: white;
+    max-height: calc(100vh - 50px);
+    overflow-y: auto;
+}

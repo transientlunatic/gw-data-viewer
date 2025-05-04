@@ -1,3 +1,4 @@
+import { Collapse } from 'bootstrap'
 import h5wasm from "h5wasm";
 import * as d3 from "d3";
 const { FS } = await h5wasm.ready;
@@ -8,6 +9,13 @@ var file_input = document.getElementById('datafile');
 const output = document.getElementById('output');
 const urlInput = document.getElementById("urlInput");
 const loadFromUrlBtn = document.getElementById("loadFromUrl");
+
+
+
+let paramString = window.location.href.split('?')[1];
+let queryString = new URLSearchParams(paramString);
+const metaurl = queryString.get("metafileurl");
+
 
 // 2 functions needed for kernel density estimate
 function kernelDensityEstimator(kernel, X) {
@@ -26,8 +34,8 @@ function kernelEpanechnikov(k) {
 function hist(data, property, element){
     // set the dimensions and margins of the graph
     var margin = {top: 10, right: 30, bottom: 30, left: 40},
-	width = 600 - margin.left - margin.right,
-	height = 300 - margin.top - margin.bottom;
+	width = 900 - margin.left - margin.right,
+	height = 400 - margin.top - margin.bottom;
 
     d3.select("#output")
 	.selectAll("svg")
@@ -46,7 +54,8 @@ function hist(data, property, element){
     
     // X axis: scale and draw:
     var x = d3.scaleLinear()
-	.domain([0, 1.2*d3.max(data, function(d){return +d})])
+	.domain([d3.min(data, function(d){return +d}),
+		 d3.max(data, function(d){return +d})])
 	.range([0, width]);
     
     svg.append("g")
@@ -90,22 +99,22 @@ function hist(data, property, element){
         .attr("height", function(d) {
 	    return height - y(d.length/data.length); })
         .style("fill", "#69b3a2")
+    
+    // var kde = kernelDensityEstimator(kernelEpanechnikov(.2), x.ticks(70))
+    // var density = kde(data)
 
-    var kde = kernelDensityEstimator(kernelEpanechnikov(.2), x.ticks(70))
-    var density = kde(data)
+    // const line = d3.line()
+    // 	  .curve(d3.curveBasis)
+    // 	  .x(d => x(d[0]))
+    // 	  .y(d => y(d[1]));
 
-    const line = d3.line()
-	  .curve(d3.curveBasis)
-	  .x(d => x(d[0]))
-	  .y(d => y(d[1]));
-
-    svg.append("path")
-	.datum(density)
-	.attr("fill", "none")
-	.attr("stroke", "#000")
-	.attr("stroke-width", 3.5)
-	.attr("stroke-linejoin", "round")
-	.attr("d", line);
+    // svg.append("path")
+    // 	.datum(density)
+    // 	.attr("fill", "none")
+    // 	.attr("stroke", "#000")
+    // 	.attr("stroke-width", 3.5)
+    // 	.attr("stroke-linejoin", "round")
+    // 	.attr("d", line);
 }
 
 function display_parameter_list(file){
@@ -116,14 +125,27 @@ function display_parameter_list(file){
  
     const menu = d3.select("#output")
 	  .append("div")
-	  .attr("class", "col-md-4");
+	  .attr("class", "col-md-2 d3gw-sidebar")
+	  .style("overflow-y", "auto")
+    	  .style("max-height", "95vh");
 
     for (const dataset of datasets){
 	const posteriors = file.get(dataset+"/posterior_samples");
-	menu.append("h5")
-	    .text(dataset);
-	menu.append("ul")
-	    .attr("class", "list-group")
+	const dataset_menu = menu.append("ul")
+	      .attr("class", "list-unstyled ps-0");
+
+	const dataset_menu_button = dataset_menu.append("p")
+	      .attr("class", "d-inline-flex align-items-center rounded border-0 btn-collapse")
+	      .attr("data-bs-toggle", "collapse")
+	      .attr("data-bs-target", "#dataset-"+dataset.replace(":", "_"))
+	      .text(dataset);
+
+	var dataset_submenu = dataset_menu.append("div")
+	    .style("visibility", "none")
+	    .style("overflow-y", "auto")
+	    .attr("id", "#dataset-"+dataset.replace(":", "_"))
+	    .append("ul")
+	    .attr("class", "list-unstyled ps-3 small")
 	    .selectAll("li")
     	    .data(posteriors.metadata.compound_type.members)
 	    .enter()
@@ -173,19 +195,18 @@ file_input.addEventListener("change", async (event) => {
 });
 
 // URL Load
-loadFromUrlBtn.addEventListener("click", async () => {
-  const url = urlInput.value;
-  if (!url) return;
+if (typeof metaurl != undefined){
+    const url = metaurl;
+    try {
+	const response = await fetch(url);
+	const buffer = await response.arrayBuffer();
+	FS.writeFile("tmp", new Uint8Array(buffer));
+	const h5file = new h5wasm.File("tmp", "r");
+	display_parameter_list(h5file, "bilby-roq-cosmo-2");
+	display_samples(h5file, "bilby-roq-cosmo-2");
+	
+    } catch (err) {
+	output.textContent = `Error loading from URL: ${err}`;
+    }
+}
 
-  try {
-      const response = await fetch(url);
-      const buffer = await response.arrayBuffer();
-      FS.writeFile("tmp", new Uint8Array(buffer));
-      const h5file = new h5wasm.File("tmp", "r");
-      display_parameter_list(h5file, "bilby-roq-cosmo-2");
-      display_samples(h5file, "bilby-roq-cosmo-2");
-
-  } catch (err) {
-    output.textContent = `Error loading from URL: ${err}`;
-  }
-});
