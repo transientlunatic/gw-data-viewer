@@ -200,11 +200,12 @@ if (typeof metaurl != undefined){
     try {
 	const response = await fetch(url);
 	const buffer = await response.arrayBuffer();
-	FS.writeFile("tmp", new Uint8Array(buffer));
-	const h5file = new h5wasm.File("tmp", "r");
-	display_parameter_list(h5file, "bilby-roq-cosmo-2");
-	display_samples(h5file, "bilby-roq-cosmo-2");
-	
+	console.log("Downloaded");
+	console.log(buffer);
+	FS.writeFile("tmp.h5", new Uint8Array(buffer));
+	console.log("Saved")
+	const h5file = new h5wasm.File("tmp.h5", "r");
+	display_parameter_list(h5file);
     } catch (err) {
 	output.textContent = `Error loading from URL: ${err}`;
     }
